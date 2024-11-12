@@ -13,6 +13,39 @@ app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 20
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
 
+function formatDate(date) {
+  return {
+    unix: date.getTime(),
+    utc: date.toUTCString(),
+  };
+}
+
+app.get('/api/:date?', (req, res) => {
+  let dateParam = req.params.date;
+
+  // Handle empty date parameter: Use current date
+  if (!dateParam) {
+    const currentDate = new Date();
+    return res.json(formatDate(currentDate));
+  }
+
+  // Check if dateParam is a UNIX timestamp (contains only digits)
+  if (!isNaN(dateParam)) {
+    dateParam = parseInt(dateParam);
+  }
+
+  // Create a date object from the dateParam
+  const date = new Date(dateParam);
+
+  // Check if the date is valid
+  if (isNaN(date.getTime())) {
+    return res.json({ error: "Invalid Date" });
+  }
+
+  // Respond with UNIX and UTC formats
+  res.json(formatDate(date));
+});
+
 // http://expressjs.com/en/starter/basic-routing.html
 app.get("/", function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
